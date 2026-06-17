@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>股票 AI Agent</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+  :root {
+    --bg:#F7F5EE; --bg2:#EFEDE6; --bg3:#E8E6DF;
+    --border:#DDD9CE; --border2:#CBC7BC;
+    --text:#1A1915; --text2:#6B6860; --text3:#9B9890;
+    --r:10px; --r2:14px;
+    --green:#3B6D11; --gbg:#EAF3DE;
+    --red:#A32D2D;   --rbg:#FCEBEB;
+    --amber:#854F0B; --abg:#FAEEDA;
+    --blue:#0C447C;  --bbg:#E6F1FB;
+    --purple:#3C3489;--pbg:#EEEDFE;
+    --teal:#085041;  --tbg:#E1F5EE;
+    --gray:#444441;  --ggbg:#F1EFE8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  .wrap{max-width:880px;margin:0 auto;padding:1.5rem 1.25rem 4rem}
+
+  /* header */
+  .hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
+  .hdr h1{font-size:19px;font-weight:500;letter-spacing:-.3px}
+  .hdr p{font-size:11px;color:var(--text2);margin-top:3px}
+  .live{display:inline-flex;align-items:center;gap:3px;background:var(--gbg);color:var(--green);padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;margin-left:7px;vertical-align:2px}
+  .live::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block}
+  .hdr-btns{display:flex;gap:6px;flex-wrap:wrap}
+  .rbtn{display:flex;align-items:center;gap:4px;padding:6px 12px;border:.5px solid var(--border2);border-radius:var(--r);background:var(--bg);font-size:12px;color:var(--text);cursor:pointer;transition:background .15s}
+  .rbtn:hover{background:var(--bg2)}
+  .rbtn.spin i{animation:sp 1s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  /* metrics */
+  .mets{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:1rem}
+  .met{background:var(--bg2);border-radius:var(--r);padding:11px 13px}
+  .ml{font-size:11px;color:var(--text2);margin-bottom:4px}
+  .mv{font-size:20px;font-weight:500}
+  .ms{font-size:11px;margin-top:2px}
+
+  /* tabs */
+  .tabwrap{border-bottom:.5px solid var(--border);margin-bottom:1.1rem;overflow-x:auto}
+  .tabs{display:flex;min-width:max-content}
+  .tab{padding:7px 12px;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-.5px;white-space:nowrap;transition:all .15s}
+  .tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:500}
+  .tab:hover:not(.active){color:var(--text)}
+  .panel{display:none}.panel.active{display:block}
+
+  /* badges */
+  .b{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500;white-space:nowrap}
+  .bg{background:var(--gbg);color:var(--green)} .br{background:var(--rbg);color:var(--red)}
+  .ba{background:var(--abg);color:var(--amber)} .bb{background:var(--bbg);color:var(--blue)}
+  .bp{background:var(--pbg);color:var(--purple)} .bt{background:var(--tbg);color:var(--teal)}
+  .bgr{background:var(--ggbg);color:var(--gray)}
+
+  /* card */
+  .card{background:var(--bg);border:.5px solid var(--border);border-radius:var(--r2);padding:1rem 1.1rem;margin-bottom:9px}
+  .ctitle{font-size:10px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:4px}
+
+  /* rows */
+  .row{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:.5px solid var(--border);font-size:12px;line-height:1.5}
+  .row:last-child{border-bottom:none}
+  .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
+  .dg{background:#639922}.dr{background:#E24B4A}.da{background:#BA7517}.db{background:#378ADD}.dp{background:#7F77DD}
+
+  .arow{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:.5px solid var(--border);font-size:12px}
+  .arow:last-child{border-bottom:none}
+  .al{color:var(--text2);min-width:72px;font-size:11px;flex-shrink:0;padding-top:1px}
+  .av{flex:1;line-height:1.55;text-align:right}
+
+  /* news */
+  .ni{border:.5px solid var(--border);border-radius:var(--r2);padding:11px 13px;margin-bottom:8px}
+  .nm{display:flex;align-items:center;gap:5px;margin-bottom:5px;flex-wrap:wrap}
+  .ns{font-size:10px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.3px}
+  .nt{font-size:13px;font-weight:500;margin-bottom:5px;line-height:1.35}
+  .na{font-size:12px;color:var(--text2);line-height:1.6;background:var(--bg2);padding:9px 11px;border-radius:var(--r)}
+  .ntags{display:flex;flex-wrap:wrap;gap:3px;margin-top:7px}
+  .ntag{font-size:10px;padding:2px 7px;border-radius:20px;border:.5px solid var(--border);color:var(--text2)}
+
+  /* sector grid */
+  .sgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:9px}
+  .scard{background:var(--bg);border:.5px solid var(--border);border-radius:var(--r2);padding:11px 13px}
+  .sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+  .sn{font-size:12px;font-weight:500}
+  .sv{font-size:17px;font-weight:500;margin-bottom:2px}
+  .sd{font-size:11px;color:var(--text2)}
+  .stars{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px}
+  .sc{font-size:10px;padding:2px 6px;border-radius:20px;background:var(--bg2);color:var(--text2);border:.5px solid var(--border)}
+
+  /* flow bars */
+  .frow{display:flex;align-items:center;gap:8px;font-size:11px;margin-bottom:7px}
+  .frow:last-child{margin-bottom:0}
+  .fl{min-width:82px;color:var(--text2)}
+  .fbw{flex:1;height:5px;background:var(--bg2);border-radius:3px;overflow:hidden}
+  .fb{height:100%;border-radius:3px}
+  .fv{min-width:34px;text-align:right;font-weight:500}
+
+  /* holdings */
+  .hcard{display:flex;align-items:center;gap:10px;border:.5px solid var(--border);border-radius:var(--r2);padding:9px 13px;margin-bottom:7px}
+  .htk{width:40px;height:40px;border-radius:var(--r);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+  .hinfo{flex:1;min-width:0}
+  .hn{font-size:13px;font-weight:500}
+  .hd{font-size:11px;color:var(--text2);margin-top:1px}
+  .hrt{text-align:right;flex-shrink:0}
+  .hp{font-size:13px;font-weight:500}
+  .hc{font-size:11px;margin-top:1px}
+  .rbdg{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;flex-shrink:0}
+
+  /* guru */
+  .gcard{display:flex;align-items:flex-start;gap:10px;background:var(--bg);border:.5px solid var(--border);border-radius:var(--r2);padding:1rem 1.1rem;margin-bottom:9px}
+  .gav{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+  .gb{flex:1;min-width:0}
+  .gn{font-size:13px;font-weight:500}
+  .gm{font-size:11px;color:var(--text2);margin-top:2px;margin-bottom:7px}
+  .gtags{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px}
+  .prow{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:.5px solid var(--border);font-size:11px}
+  .prow:last-child{border-bottom:none}
+  .ptk{font-weight:500;min-width:52px}
+  .pbw{flex:1;height:4px;background:var(--bg2);border-radius:2px;overflow:hidden}
+  .pb{height:100%;border-radius:2px}
+  .ppc{min-width:28px;text-align:right;color:var(--text2)}
+  .ctag{font-size:10px;padding:1px 6px;border-radius:20px}
+  .cnew{background:var(--tbg);color:var(--teal)}
+  .cadd{background:var(--bbg);color:var(--blue)}
+  .ctrm{background:var(--abg);color:var(--amber)}
+
+  /* space */
+  .hero{border:2px solid #97C459;border-radius:var(--r2);padding:1.1rem;margin-bottom:9px}
+  .hero-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:11px;flex-wrap:wrap;gap:6px}
+  .hero-title{font-size:15px;font-weight:500}
+  .hero-sub{font-size:11px;color:var(--text2);margin-top:3px}
+  .ipon{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}
+  .inum{background:var(--bg2);border-radius:var(--r);padding:9px 11px;text-align:center}
+  .inl{font-size:10px;color:var(--text2);margin-bottom:3px}
+  .inv{font-size:15px;font-weight:500}
+  .ins{font-size:10px;color:var(--text2);margin-top:1px}
+
+  /* ticker list */
+  .trow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:.5px solid var(--border)}
+  .trow:last-child{border-bottom:none}
+  .ttk{width:46px;height:36px;border-radius:var(--r);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+  .ti{flex:1;min-width:0}
+  .tname{font-size:12px;font-weight:500}
+  .tdesc{font-size:10px;color:var(--text2);margin-top:1px}
+  .trt{text-align:right;flex-shrink:0}
+
+  /* schedule */
+  .srow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:.5px solid var(--border);font-size:12px}
+  .srow:last-child{border-bottom:none}
+  .stime{font-size:11px;color:var(--text2);min-width:68px;flex-shrink:0}
+
+  /* ask btn */
+  .askbtn{display:flex;align-items:center;gap:5px;padding:6px 12px;border:.5px solid var(--border2);border-radius:var(--r);background:var(--bg);font-size:11px;color:var(--text);cursor:pointer;margin-top:10px;transition:background .15s;width:fit-content}
+  .askbtn:hover{background:var(--bg2)}
+
+  /* alert box */
+  .abox{background:var(--bg2);border-radius:var(--r);padding:9px 11px;font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px}
+
+  /* serenity skill panel */
+  .skill-hero{background:linear-gradient(135deg,#1A1915 0%,#2A2820 100%);border-radius:var(--r2);padding:1.25rem;margin-bottom:10px;color:#F7F5EE}
+  .skill-hero h2{font-size:16px;font-weight:500;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .skill-hero p{font-size:12px;opacity:.7;line-height:1.6;margin-bottom:14px}
+  .skill-badge{background:rgba(255,255,255,.12);color:#F7F5EE;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500}
+  .skill-installed{background:#EAF3DE;color:#3B6D11;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500}
+  .prompt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+  .prompt-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:var(--r);padding:10px 12px;cursor:pointer;transition:background .15s}
+  .prompt-card:hover{background:rgba(255,255,255,.15)}
+  .prompt-card .pc-label{font-size:10px;opacity:.6;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+  .prompt-card .pc-text{font-size:12px;line-height:1.45}
+  .skill-input-wrap{display:flex;gap:7px}
+  .skill-input{flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:var(--r);padding:9px 12px;font-size:12px;color:#F7F5EE;outline:none;font-family:inherit}
+  .skill-input::placeholder{opacity:.45}
+  .skill-input:focus{border-color:rgba(255,255,255,.4)}
+  .skill-send{padding:9px 16px;background:#639922;border:none;border-radius:var(--r);font-size:12px;color:#fff;cursor:pointer;font-weight:500;white-space:nowrap}
+  .skill-send:hover{background:#4e7a18}
+  .skill-output{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--r);padding:11px 13px;margin-top:10px;font-size:12px;line-height:1.7;min-height:60px;display:none}
+  .skill-output.active{display:block}
+  .skill-output .typing::after{content:'▋';animation:blink .8s infinite}
+  @keyframes blink{50%{opacity:0}}
+  .skill-examples{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+  .skill-ex{display:flex;align-items:flex-start;gap:6px;padding:7px 10px;background:rgba(255,255,255,.06);border-radius:var(--r);font-size:11px;cursor:pointer;transition:background .15s;line-height:1.4}
+  .skill-ex:hover{background:rgba(255,255,255,.12)}
+  .skill-ex-icon{opacity:.5;flex-shrink:0;margin-top:1px}
+
+  @media(max-width:520px){
+    .mets{grid-template-columns:repeat(2,1fr)}
+    .sgrid{grid-template-columns:1fr}
+    .ipon{grid-template-columns:repeat(3,1fr)}
+    .prompt-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<div id="gate" style="position:fixed;inset:0;background:#F7F5EE;z-index:9999;display:flex;align-items:center;justify-content:center">
+  <div style="background:#fff;border:0.5px solid #DDD9CE;border-radius:14px;padding:2rem 2.5rem;max-width:360px;width:90%;box-shadow:0 4px 24px rgba(0,0,0,.08)">
+    <div style="text-align:center;font-size:28px;margin-bottom:12px">📈</div>
+    <div style="text-align:center;font-size:17px;font-weight:500;margin-bottom:4px">股票 AI Agent</div>
+    <div style="text-align:center;font-size:12px;color:#6B6860;margin-bottom:20px">输入你的 Claude API Key 开始使用</div>
+    <input id="apiKeyInput" type="password" placeholder="sk-ant-api03-..."
+      style="width:100%;padding:10px 14px;border:0.5px solid #DDD9CE;border-radius:10px;font-size:13px;margin-bottom:8px;outline:none;font-family:monospace;background:#F7F5EE;color:#1A1915"
+      onkeydown="if(event.key==='Enter')saveKey()">
+    <button onclick="saveKey()"
+      style="width:100%;padding:10px;background:#1A1915;color:#fff;border:none;border-radius:10px;font-size:14px;cursor:pointer;font-weight:500;margin-bottom:10px">进入</button>
+    <div id="keyErr" style="font-size:11px;color:#A32D2D;margin-bottom:10px;display:none">Key 格式不对，应以 sk-ant- 开头</div>
+    <div style="font-size:11px;color:#9B9890;line-height:1.6;border-top:0.5px solid #EEE;padding-top:10px">
+      🔑 Key 仅存在你的浏览器本地，不经过任何服务器<br>
+      📦 去 <strong>console.anthropic.com</strong> 免费获取<br>
+      💰 每次 AI 分析约 $0.003，极低成本
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="hdr">
+    <div>
+      <h1>股票 AI Agent <span class="live">实时</span></h1>
+      <p>2026年6月16日 · PST 09:00 自动刷新 · Claude AI 驱动</p>
+    </div>
+    <div class="hdr-btns">
+      <button class="rbtn" id="rbtn" onclick="doRefresh()"><i class="ti ti-refresh" id="ri"></i> 刷新</button>
+    </div>
+  </div>
+
+  <div class="mets">
+    <div class="met"><div class="ml">S&P 500</div><div class="mv">5,304</div><div class="ms" style="color:var(--green)">▲ +0.73%</div></div>
+    <div class="met"><div class="ml">NASDAQ</div><div class="mv">16,780</div><div class="ms" style="color:var(--red)">▼ −0.21%</div></div>
+    <div class="met"><div class="ml">VIX 恐慌</div><div class="mv">18.4</div><div class="ms" style="color:var(--amber)">中性偏紧张</div></div>
+    <div class="met"><div class="ml">市场情绪</div><div class="mv">64</div><div class="ms" style="color:var(--green)">贪婪区间</div></div>
+  </div>
+
+  <div class="tabwrap">
+    <div class="tabs">
+      <div class="tab active" onclick="sw('briefing',this)">今日简报</div>
+      <div class="tab" onclick="sw('news',this)">新闻解读</div>
+      <div class="tab" onclick="sw('sectors',this)">板块全景</div>
+      <div class="tab" onclick="sw('space',this)">🚀 卫星&amp;航天</div>
+      <div class="tab" onclick="sw('darkhorses',this)">黑马雷达</div>
+      <div class="tab" onclick="sw('trump',this)">特朗普概念</div>
+      <div class="tab" onclick="sw('gurus',this)">股神仓位</div>
+      <div class="tab" onclick="sw('holdings',this)">我的持仓</div>
+      <div class="tab" onclick="sw('schedule',this)">本周日程</div>
+      <div class="tab" onclick="sw('serenity',this)">⚡ Serenity Skill</div>
+    </div>
+  </div>
+
+  <!-- ===== 今日简报 ===== -->
+  <div id="briefing" class="panel active">
+    <div class="card">
+      <div class="ctitle"><i class="ti ti-flame"></i>今日最重要信号</div>
+      <div class="row"><div class="dot dr"></div><div>英伟达财报超预期 18%，EPS $6.12 vs 预期 $5.18，数据中心 +122%。明日预计高开 7-9%。</div></div>
+      <div class="row"><div class="dot dp"></div><div><strong>SpaceX 获 Space Force $64.5亿合同</strong>（黄金穹顶卫星+低轨通信网），IPO Roadshow 6月8日启动，估值 $1.8万亿，史上最大 IPO。</div></div>
+      <div class="row"><div class="dot da"></div><div>Fed Waller 偏鹰：年内降息或减至 1 次，10年期美债升至 4.62%，成长股估值承压。</div></div>
+      <div class="row"><div class="dot dg"></div><div>苹果 WWDC：Apple Intelligence 整合 iOS 20，iPhone 出货上调至 2.45亿，目标价 $230。</div></div>
+      <div class="row"><div class="dot db"></div><div>本周五 PCE 数据（预期 +2.7% YoY）是最关键宏观事件，符合预期将利好风险资产。</div></div>
+    </div>
+    <div class="card">
+      <div class="ctitle"><i class="ti ti-brain"></i>AI 操盘手今日观点</div>
+      <div class="arow"><span class="al">市场倾向</span><span class="av">短期震荡偏多。NVDA 提振科技情绪，利率压力制约上行。建议仓位 75-80%。</span></div>
+      <div class="arow"><span class="al">今日机会</span><span class="av" style="color:var(--green)">NVDA、SMH。RKLB 受 SpaceX IPO 热情带动月内 +83%，可轻仓持有。</span></div>
+      <div class="arow"><span class="al">今日风险</span><span class="av" style="color:var(--red)">ASTS 昨夜 -11%（SpaceX 估值下调）。REITs/公用事业利率承压。</span></div>
+      <div class="arow"><span class="al">本周重点</span><span class="av">周五 PCE 前保持观望。SpaceX IPO 前不追高航天板块，等上市后再建仓。</span></div>
+    </div>
+  </div>
+
+  <!-- ===== 新闻解读 ===== -->
+  <div id="news" class="panel">
+    <div class="ni">
+      <div class="nm"><span class="ns">Bloomberg</span><span style="font-size:10px;color:var(--text2)">2h前</span><span class="b br">高影响</span></div>
+      <div class="nt">英伟达 Q1 FY2027：收入 $440亿，超华尔街预期 $393亿</div>
+      <div class="na">Blackwell GPU 需求爆发，数据中心 $391亿（+122% YoY），毛利率 78.4% 创新高，定价权极强。微软/Google/Meta 资本开支持续扩张是核心驱动。AMD、ASML、台积电 ADR 正联动。唯一长期风险：对华出口管制，管理层称合规版本在研。</div>
+      <div class="ntags"><span class="ntag">NVDA +8%预期</span><span class="ntag">SMH ETF</span><span class="ntag">AMD联动</span><span class="ntag">ASML正向</span></div>
+    </div>
+    <div class="ni">
+      <div class="nm"><span class="ns">TechCrunch</span><span style="font-size:10px;color:var(--text2)">5h前</span><span class="b br">高影响</span></div>
+      <div class="nt">SpaceX 获 Space Force $64.5亿合同：黄金穹顶 + 低轨通信网</div>
+      <div class="na">$41.6亿造导弹防御卫星（黄金穹顶），$22.9亿建低轨通信网，与特朗普核心政策深度绑定。IPO 前夕锁定政府长期合同，RKLB、LUNR 正联动。ASTS 因估值下调今日独立承压。</div>
+      <div class="ntags"><span class="ntag">SPCX IPO背书</span><span class="ntag">RKLB联动</span><span class="ntag">黄金穹顶</span></div>
+    </div>
+    <div class="ni">
+      <div class="nm"><span class="ns">Reuters</span><span style="font-size:10px;color:var(--text2)">5h前</span><span class="b ba">中影响</span></div>
+      <div class="nt">Fed Waller 偏鹰：年内降息或仅 1 次，超市场预期</div>
+      <div class="na">CME FedWatch 9月降息概率从 68% 降至 51%。影响链：美债收益率上行 → 高 P/E 成长股估值压缩。周五 PCE 若良好可部分抵消。盈利强劲者（NVDA）可对冲，纯炒作高 P/E 标的警惕。</div>
+      <div class="ntags"><span class="ntag">REITs承压</span><span class="ntag">美元走强</span><span class="ntag">成长股估值压</span></div>
+    </div>
+    <div class="ni">
+      <div class="nm"><span class="ns">CNBC</span><span style="font-size:10px;color:var(--text2)">8h前</span><span class="b bg">正面</span></div>
+      <div class="nt">苹果 WWDC 2026：Apple Intelligence 全面整合，M5 芯片性能 +40%</div>
+      <div class="na">端侧 AI + 隐私差异化超预期。iPhone 出货上调至 2.45亿台（前 2.32亿）。服务收入高毛利是核心估值支撑。台积电 ADR 正向联动。短期震荡消化，12个月维度看多。</div>
+      <div class="ntags"><span class="ntag">AAPL目标价$230</span><span class="ntag">台积电正向</span><span class="ntag">换机周期</span></div>
+    </div>
+  </div>
+
+  <!-- ===== 板块全景 ===== -->
+  <div id="sectors" class="panel">
+    <div class="ctitle" style="margin-bottom:9px"><i class="ti ti-layout-grid"></i>板块资金流与热度（本周）</div>
+    <div class="sgrid">
+      <div class="scard" style="border-color:#97C459"><div class="sh"><span class="sn">AI 算力</span><span class="b bg">爆热 🔥</span></div><div class="sv" style="color:var(--green)">+4.2%</div><div class="sd">机构净流入 $82亿 · NVDA 财报引爆</div><div class="stars"><span class="sc">NVDA▲8%</span><span class="sc">AMD</span><span class="sc">ASML</span><span class="sc">SMH</span></div></div>
+      <div class="scard" style="border-color:#CECBF6"><div class="sh"><span class="sn">卫星 &amp; 航天</span><span class="b bp">IPO狂热</span></div><div class="sv" style="color:var(--purple)">+6.1%</div><div class="sd">SpaceX IPO 6月上市 · 板块狂欢</div><div class="stars"><span class="sc">RKLB+83%月</span><span class="sc">ASTS</span><span class="sc">LUNR</span><span class="sc">SPCX待</span></div></div>
+      <div class="scard" style="border-color:#9FE1CB"><div class="sh"><span class="sn">核能</span><span class="b bt">政策加速</span></div><div class="sv" style="color:var(--teal)">+6.7%</div><div class="sd">AI用电+特朗普去监管 · 核电复兴</div><div class="stars"><span class="sc">CCJ</span><span class="sc">VST</span><span class="sc">CEG</span><span class="sc">NNE</span></div></div>
+      <div class="scard" style="border-color:#85B7EB"><div class="sh"><span class="sn">消费科技</span><span class="b bb">升温</span></div><div class="sv" style="color:var(--blue)">+1.8%</div><div class="sd">WWDC 催化 · iPhone 换机预期</div><div class="stars"><span class="sc">AAPL▲1.2%</span><span class="sc">META</span><span class="sc">GOOGL</span></div></div>
+      <div class="scard" style="border-color:#FAC775"><div class="sh"><span class="sn">能源 / 天然气</span><span class="b ba">潜力</span></div><div class="sv" style="color:var(--amber)">+2.9%</div><div class="sd">AI 数据中心用电量 +40% 新叙事</div><div class="stars"><span class="sc">LNG</span><span class="sc">AR</span><span class="sc">EQT</span><span class="sc">FANG</span></div></div>
+      <div class="scard" style="border-color:#CECBF6"><div class="sh"><span class="sn">云计算 / SaaS</span><span class="b bp">稳升</span></div><div class="sv" style="color:var(--purple)">+1.3%</div><div class="sd">AI 原生 SaaS 企业渗透率提升</div><div class="stars"><span class="sc">ORCL</span><span class="sc">PLTR</span><span class="sc">SNOW</span><span class="sc">CRM</span></div></div>
+      <div class="scard" style="border-color:#9FE1CB"><div class="sh"><span class="sn">医疗 / GLP-1</span><span class="b bt">稳健</span></div><div class="sv" style="color:var(--teal)">+0.6%</div><div class="sd">减肥药赛道扩张 · 防御底仓</div><div class="stars"><span class="sc">LLY▲2%</span><span class="sc">NVO</span><span class="sc">VKTX</span></div></div>
+      <div class="scard" style="border-color:#F09595"><div class="sh"><span class="sn">金融 / 加密</span><span class="b ba">震荡</span></div><div class="sv" style="color:var(--red)">−0.4%</div><div class="sd">利率鹰派承压 · 加密政策友好</div><div class="stars"><span class="sc">COIN</span><span class="sc">MSTR</span><span class="sc">JPM</span></div></div>
+    </div>
+    <div class="card">
+      <div class="ctitle"><i class="ti ti-chart-bar"></i>机构净流入排行（本周）</div>
+      <div class="frow"><span class="fl">AI 算力</span><div class="fbw"><div class="fb" style="width:85%;background:#639922"></div></div><span class="fv" style="color:var(--green)">$82亿</span></div>
+      <div class="frow"><span class="fl">消费科技</span><div class="fbw"><div class="fb" style="width:63%;background:#378ADD"></div></div><span class="fv" style="color:var(--blue)">$61亿</span></div>
+      <div class="frow"><span class="fl">卫星&amp;航天</span><div class="fbw"><div class="fb" style="width:55%;background:#7F77DD"></div></div><span class="fv" style="color:var(--purple)">$53亿</span></div>
+      <div class="frow"><span class="fl">能源</span><div class="fbw"><div class="fb" style="width:49%;background:#BA7517"></div></div><span class="fv" style="color:var(--amber)">$47亿</span></div>
+      <div class="frow"><span class="fl">云 / SaaS</span><div class="fbw"><div class="fb" style="width:39%;background:#AFA9EC"></div></div><span class="fv" style="color:var(--purple)">$37亿</span></div>
+      <div class="frow"><span class="fl">核能</span><div class="fbw"><div class="fb" style="width:29%;background:#1D9E75"></div></div><span class="fv" style="color:var(--teal)">$28亿</span></div>
+    </div>
+  </div>
+
+  <!-- ===== 卫星 & 航天 ===== -->
+  <div id="space" class="panel">
+    <div class="hero">
+      <div class="hero-top">
+        <div><div class="hero-title">SpaceX · SPCX <span style="font-size:12px;color:var(--text2);font-weight:400">Nasdaq 双挂牌</span></div><div class="hero-sub">Roadshow 6月8日 · 预计6月底上市 · 23家顶级机构承销</div></div>
+        <span class="b" style="background:#EAF3DE;color:#27500A;font-size:11px">史上最大 IPO</span>
+      </div>
+      <div class="ipon">
+        <div class="inum"><div class="inl">目标估值</div><div class="inv">$1.8万亿</div><div class="ins">从$2万亿下调</div></div>
+        <div class="inum"><div class="inl">募资规模</div><div class="inv">$750亿+</div><div class="ins">超沙特阿美</div></div>
+        <div class="inum"><div class="inl">2025营收</div><div class="inv">$186.7亿</div><div class="ins">+33% YoY</div></div>
+      </div>
+      <div class="abox">今日 Space Force $64.5亿合同（黄金穹顶+低轨通信网）直接锁定政府长期收入。Starlink 是现金流引擎，xAI 合并后 AI 算力叙事加持。风险：Q1 xAI 亏损 $24.7亿，$290亿长债，马斯克 Class B 股 85% 投票权，散户几乎无话语权。</div>
+      <div class="row"><div class="dot dg"></div><div style="font-size:12px">Starlink 全球扩张 + Space Force 长期合同，现金流支撑估值</div></div>
+      <div class="row"><div class="dot da"></div><div style="font-size:12px">P/S 比 104x，估值从 $2万亿下调，市场存在明显分歧</div></div>
+      <div class="row"><div class="dot dr"></div><div style="font-size:12px">xAI/X 合并带来沉重债务，双类股结构散户话语权极弱</div></div>
+      <button class="askbtn" onclick="openSerenity('用 serenity-skill 深度分析 SpaceX IPO。产业链定位在哪？$1.8万亿估值合理吗？散户策略？')"><i class="ti ti-sparkles"></i> 用 Serenity Skill 深度分析 SpaceX</button>
+    </div>
+    <div class="card">
+      <div class="ctitle"><i class="ti ti-news"></i>今日快讯</div>
+      <div class="row"><div class="dot dg"></div><div style="font-size:12px"><strong>突发：</strong>SpaceX 获 Space Force $64.5亿合同，黄金穹顶卫星防御系统，IPO 前夕背书。</div></div>
+      <div class="row"><div class="dot dr"></div><div style="font-size:12px"><strong>注意：</strong>ASTS 昨夜 -11%，SpaceX 估值下调至 $1.8万亿（低于预期 $2万亿）拖累板块。</div></div>
+      <div class="row"><div class="dot da"></div><div style="font-size:12px"><strong>关注：</strong>ASTS BlueBird 8/9/10 已抵达卡纳维拉尔角，6月中旬搭 Falcon 9 发射，关键节点。</div></div>
+      <div class="row"><div class="dot db"></div><div style="font-size:12px"><strong>新品：</strong>Tema Space Innovators ETF（代码 NASA）本月新上市，板块整体敞口选项。</div></div>
+    </div>
+    <div class="card">
+      <div class="ctitle"><i class="ti ti-chart-line"></i>板块标的全览</div>
+      <div class="trow"><div class="ttk">ASTS</div><div class="ti"><div class="tname">AST SpaceMobile</div><div class="tdesc">手机直连卫星 · FCC 商业授权已批 · AT&T/Verizon 合作</div></div><div class="trt"><div style="font-size:13px;font-weight:500;color:var(--green)">+437% 年</div><span class="b ba" style="margin-top:3px;display:inline-flex">今日-11%</span></div></div>
+      <div class="trow"><div class="ttk">RKLB</div><div class="ti"><div class="tname">Rocket Lab USA</div><div class="tdesc">最接近 SpaceX 竞争者 · Neutron 中型火箭 2026首飞</div></div><div class="trt"><div style="font-size:13px;font-weight:500;color:var(--green)">+412% 年</div><span class="b bg" style="margin-top:3px;display:inline-flex">基本面最强</span></div></div>
+      <div class="trow"><div class="ttk">LUNR</div><div class="ti"><div class="tname">Intuitive Machines</div><div class="tdesc">月球物流龙头 · NASA 合同 · IM-3 下半年着陆</div></div><div class="trt"><div style="font-size:13px;font-weight:500;color:var(--green)">+273% 年</div><span class="b bb" style="margin-top:3px;display:inline-flex">等催化剂</span></div></div>
+      <div class="trow"><div class="ttk">RDW</div><div class="ti"><div class="tname">Redwire</div><div class="tdesc">太空基础设施 · 国防航天供应链</div></div><div class="trt"><div style="font-size:13px;font-weight:500;color:var(--green)">+67% 年</div><span class="b bgr" style="margin-top:3px;display:inline-flex">防御配置</span></div></div>
+      <div class="trow"><div class="ttk" style="font-size:9px">NASA ETF</div><div class="ti"><div class="tname">Tema Space Innovators ETF</div><div class="tdesc">板块整体敞口 · 新上市 · 适合不挑个股者</div></div><div class="trt"><div style="font-size:12px;font-weight:500">新上市</div><span class="b bt" style="margin-top:3px;display:inline-flex">低风险入场</span></div></div>
+    </div>
+    <div class="card">
+      <div class="ctitle"><i class="ti ti-brain"></i>AI 操盘建议</div>
+      <div class="arow"><span class="al">SPCX IPO</span><span class="av">首日不追高，历史大 IPO 常首日溢价后回调。建议上市 1-2 周后再建仓。</span></div>
+      <div class="arow"><span class="al">RKLB</span><span class="av" style="color:var(--green)">最优正股，基本面最扎实。Neutron 首飞成功可大幅重估，轻仓持有。</span></div>
+      <div class="arow"><span class="al">ASTS</span><span class="av" style="color:var(--amber)">今日-11%短期博弈机会，6月发射成功可大反弹，小仓位博弈催化剂。</span></div>
+      <div class="arow"><span class="al">NASA ETF</span><span class="av">最低风险获得板块整体敞口，适合看好大方向不想挑股者。</span></div>
+    </div>
+  </div>
+
+  <!-- ===== 黑马雷达 ===== -->
+  <div id="darkhorses" class="panel">
+    <div class="ctitle" style="margin-bottom:9px"><i class="ti ti-horse"></i>黑马雷达 · AI 筛选异动个股</div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px"><span style="font-size:14px;font-weight:500">ORCL · 甲骨文</span><span class="b bg">强信号</span></div>
+      <div class="abox">与 OpenAI 签 $10亿云协议，Stargate 核心供应商。数据库+云在 AI 时代成基础设施刚需，前 OpenAI 研究员 Anshu 特别新建仓位。目标价 $210，止损 $170，P/E 42x 偏贵需等回调。</div>
+      <div class="ntags"><span class="ntag">目标价$210</span><span class="ntag">Anshu重仓</span><span class="ntag">P/E42x等回调</span></div>
+      <button class="askbtn" onclick="openSerenity('用 serenity-skill 深度分析 ORCL。它在 AI 产业链哪一层？供应链瓶颈在哪？现在价位值得买吗？')"><i class="ti ti-sparkles"></i> Serenity Skill 分析 ORCL 产业链位置</button>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px"><span style="font-size:14px;font-weight:500">PLTR · Palantir</span><span class="b bp">机构新宠</span></div>
+      <div class="abox">Q1 美国商业收入 +71% YoY，AIP 平台渗透 500+ 企业。多家对冲基金 Q1 13F 大幅加仓，技术面突破关键阻力位，政府 AI 合同爆发是额外催化。</div>
+      <div class="ntags"><span class="ntag">商业收入+71%</span><span class="ntag">机构Q1加仓</span><span class="ntag">技术面突破</span></div>
+      <button class="askbtn" onclick="openSerenity('用 serenity-skill 挑战 PLTR。它真的卡住了 AI 软件产业链的关键环节吗？对比 Snowflake 和 Databricks。')"><i class="ti ti-sparkles"></i> Serenity Skill 挑战 PLTR 供应链地位</button>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px"><span style="font-size:14px;font-weight:500">AR · Antero Resources</span><span class="b ba">资金暗流</span></div>
+      <div class="abox">AI 数据中心 2026 年用电量 +40%，天然气是最快补位能源。Druckenmiller 和多家量化基金悄悄建仓，股价仍在底部，冷门标的机构关注度开始提升。</div>
+      <div class="ntags"><span class="ntag">Druckenmiller建仓</span><span class="ntag">AI用电受益</span><span class="ntag">底部区间</span></div>
+      <button class="askbtn" onclick="openSerenity('用 serenity-skill 研究天然气+AI数据中心用电产业链。AR 在哪个环节？供应链瓶颈是什么？')"><i class="ti ti-sparkles"></i> Serenity Skill 分析天然气产业链</button>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px"><span style="font-size:14px;font-weight:500">VKTX · Viking Therapeutics</span><span class="b bt">医疗黑马</span></div>
+      <div class="abox">口服 GLP-1 Phase 2 数据超预期，可能颠覆注射剂市场。市值 $60亿 vs 礼来 $8500亿，risk/reward 极高。Cathie Wood 已建仓，高波动品种，小仓位博弈。</div>
+      <div class="ntags"><span class="ntag">口服GLP-1</span><span class="ntag">Cathie建仓</span><span class="ntag">高波动小仓位</span></div>
+      <button class="askbtn" onclick="openSerenity('用 serenity-skill 分析 VKTX 和 GLP-1 口服药产业链。与礼来 LLY 相比，VKTX 的竞争优势和风险是什么？')"><i class="ti ti-sparkles"></i> Serenity Skill 分析 GLP-1 产业链</button>
+    </div>
+  </div>
+
+  <!-- ===== 特朗普概念 ===== -->
+  <div id="trump" class="panel">
+    <div class="ctitle" style="margin-bottom:9px"><i class="ti ti-building-bank"></i>特朗普政策受益板块</div>
+    <div class="sgrid">
+      <div class="scard" style="border-color:#97C459"><div class="sh"><span class="sn">国防 / 军工</span><span class="b bg">预算激增</span></div><div class="sv" style="color:var(--green)">+5.8% 月</div><div class="sd">国防开支 GDP 3% 目标 · 盟国补买</div><div class="stars"><span class="sc">LMT</span><span class="sc">RTX</span><span class="sc">NOC</span><span class="sc">GD</span></div></div>
+      <div class="scard" style="border-color:#CECBF6"><div class="sh"><span class="sn">商业航天</span><span class="b bp">黄金穹顶</span></div><div class="sv" style="color:var(--purple)">+6.1% 月</div><div class="sd">SpaceX $64.5亿 Space Force 合同</div><div class="stars"><span class="sc">SPCX待</span><span class="sc">RKLB</span><span class="sc">LUNR</span></div></div>
+      <div class="scard" style="border-color:#9FE1CB"><div class="sh"><span class="sn">核能</span><span class="b bt">去监管加速</span></div><div class="sv" style="color:var(--teal)">+6.7% 月</div><div class="sd">AI 用电需求 + 核电去监管复兴</div><div class="stars"><span class="sc">CCJ</span><span class="sc">VST</span><span class="sc">CEG</span><span class="sc">NNE</span></div></div>
+      <div class="scard" style="border-color:#FAC775"><div class="sh"><span class="sn">传统能源</span><span class="b ba">Drill baby drill</span></div><div class="sv" style="color:var(--amber)">+3.1% 月</div><div class="sd">放宽环保监管 · 扩大钻探许可</div><div class="stars"><span class="sc">XOM</span><span class="sc">CVX</span><span class="sc">OXY</span><span class="sc">XLE</span></div></div>
+      <div class="scard" style="border-color:#CECBF6"><div class="sh"><span class="sn">加密货币</span><span class="b bp">政策友好</span></div><div class="sv" style="color:var(--purple)">+11.2% 月</div><div class="sd">战略比特币储备 · 全面放宽监管</div><div class="stars"><span class="sc">COIN</span><span class="sc">MSTR</span><span class="sc">HOOD</span></div></div>
+      <div class="scard" style="border-color:#FAC775"><div class="sh"><span class="sn">美国制造 / 钢铁</span><span class="b ba">关税保护</span></div><div class="sv" style="color:var(--amber)">+2.4% 月</div><div class="sd">25% 钢铝关税 · 制造业回流</div><div class="stars"><span class="sc">NUE</span><span class="sc">X</span><span class="sc">CLF</span><span class="sc">STLD</span></div></div>
+    </div>
+    <div class="card">
+      <div class="ctitle"><i class="ti ti-alert-triangle"></i>规避板块</div>
+      <div class="row"><div class="dot dr"></div><div style="font-size:12px"><strong>新能源/EV（除TSLA）：</strong>IRA 补贴削减，充电桩补贴暂停，RIVN、LCID 承压。</div></div>
+      <div class="row"><div class="dot dr"></div><div style="font-size:12px"><strong>进口依赖型消费品：</strong>大量亚洲生产的品牌股受关税冲击最重，避免持有。</div></div>
+    </div>
+  </div>
+
+  <!-- ===== 股神仓位 ===== -->
+  <div id="gurus" class="panel">
+    <div class="ctitle" style="margin-bottom:9px"><i class="ti ti-stars"></i>明星操盘手 · 最新仓位变化（Q1 2026）</div>
+    <div class="gcard">
+      <div class="gav" style="background:var(--pbg);color:var(--purple)">SR</div>
+      <div class="gb">
+        <div class="gn">Serenity（r/wallstreetbets 传奇）</div>
+        <div class="gm">Reddit 百万粉 · $10万→$380万 · 期权+正股混合策略</div>
+        <div class="gtags"><span class="b bp">AI押注</span><span class="b ba">期权杠杆</span></div>
+        <div class="prow"><span class="ptk">NVDA</span><div class="pbw"><div class="pb" style="width:55%;background:#639922"></div></div><span class="ppc">55%</span><span class="ctag cadd">加仓</span></div>
+        <div class="prow"><span class="ptk">AMD</span><div class="pbw"><div class="pb" style="width:20%;background:#378ADD"></div></div><span class="ppc">20%</span><span class="ctag cnew">新建</span></div>
+        <div class="prow"><span class="ptk">MSTR</span><div class="pbw"><div class="pb" style="width:15%;background:#BA7517"></div></div><span class="ppc">15%</span><span class="ctag ctrm">减仓</span></div>
+        <div class="prow"><span class="ptk">现金</span><div class="pbw"><div class="pb" style="width:10%;background:#B4B2A9"></div></div><span class="ppc">10%</span><span class="ctag" style="background:var(--ggbg);color:var(--gray)">持平</span></div>
+        <button class="askbtn" onclick="openSerenity('用 serenity-skill 分析 Serenity 的 NVDA 重仓逻辑。从 AI 算力产业链角度，NVDA 卡住了哪个关键瓶颈环节？')"><i class="ti ti-sparkles"></i> Serenity Skill 解析 NVDA 产业链地位</button>
+      </div>
+    </div>
+    <div class="gcard">
+      <div class="gav" style="background:var(--tbg);color:var(--teal)">AJ</div>
+      <div class="gb">
+        <div class="gn">Anshu Jain（前 OpenAI 研究员）</div>
+        <div class="gm">离职 OpenAI 后公开实盘 · 1年 +412% · 专注 AI 基础设施</div>
+        <div class="gtags"><span class="b bt">AI内部人视角</span><span class="b bg">长线正股</span></div>
+        <div class="prow"><span class="ptk">NVDA</span><div class="pbw"><div class="pb" style="width:40%;background:#639922"></div></div><span class="ppc">40%</span><span class="ctag" style="background:var(--ggbg);color:var(--gray)">持平</span></div>
+        <div class="prow"><span class="ptk">MSFT</span><div class="pbw"><div class="pb" style="width:25%;background:#378ADD"></div></div><span class="ppc">25%</span><span class="ctag cadd">加仓</span></div>
+        <div class="prow"><span class="ptk">ORCL</span><div class="pbw"><div class="pb" style="width:20%;background:#1D9E75"></div></div><span class="ppc">20%</span><span class="ctag cnew">新建</span></div>
+        <div class="prow"><span class="ptk">PLTR</span><div class="pbw"><div class="pb" style="width:15%;background:#7F77DD"></div></div><span class="ppc">15%</span><span class="ctag cadd">加仓</span></div>
+        <button class="askbtn" onclick="openSerenity('用 serenity-skill 分析 Anshu 的 AI 基础设施组合。NVDA+MSFT+ORCL+PLTR 分别在产业链哪层？谁更接近真实瓶颈？')"><i class="ti ti-sparkles"></i> Serenity Skill 分析 Anshu 产业链布局</button>
+      </div>
+    </div>
+    <div class="gcard">
+      <div class="gav" style="background:var(--abg);color:#633806">CW</div>
+      <div class="gb">
+        <div class="gn">Cathie Wood（ARK Invest）</div>
+        <div class="gm">旗舰 ARKK · 颠覆式创新押注 · 争议性但影响力极大</div>
+        <div class="gtags"><span class="b ba">颠覆创新</span><span class="b bp">5年+长线</span></div>
+        <div class="prow"><span class="ptk">TSLA</span><div class="pbw"><div class="pb" style="width:12%;background:#639922"></div></div><span class="ppc">12%</span><span class="ctag cadd">加仓</span></div>
+        <div class="prow"><span class="ptk">COIN</span><div class="pbw"><div class="pb" style="width:11%;background:#378ADD"></div></div><span class="ppc">11%</span><span class="ctag cadd">加仓</span></div>
+        <div class="prow"><span class="ptk">VKTX</span><div class="pbw"><div class="pb" style="width:8%;background:#1D9E75"></div></div><span class="ppc">8%</span><span class="ctag cnew">新建</span></div>
+        <div class="prow"><span class="ptk">ROKU</span><div class="pbw"><div class="pb" style="width:7%;background:#BA7517"></div></div><span class="ppc">7%</span><span class="ctag ctrm">减仓</span></div>
+        <button class="askbtn" onclick="openSerenity('用 serenity-skill 挑战 Cathie Wood 的 TSLA 加仓逻辑。TSLA 在 AI+机器人产业链中卡住了什么瓶颈？')"><i class="ti ti-sparkles"></i> Serenity Skill 挑战 TSLA 产业链逻辑</button>
+      </div>
+    </div>
+    <div class="gcard">
+      <div class="gav" style="background:var(--bbg);color:var(--blue)">SD</div>
+      <div class="gb">
+        <div class="gn">Stanley Druckenmiller</div>
+        <div class="gm">宏观对冲传奇 · Duquesne Family Office · 30年年化 30%+</div>
+        <div class="gtags"><span class="b bb">宏观驱动</span><span class="b bgr">集中持仓</span></div>
+        <div class="prow"><span class="ptk">NVDA</span><div class="pbw"><div class="pb" style="width:22%;background:#639922"></div></div><span class="ppc">22%</span><span class="ctag" style="background:var(--ggbg);color:var(--gray)">持平</span></div>
+        <div class="prow"><span class="ptk">天然气</span><div class="pbw"><div class="pb" style="width:18%;background:#BA7517"></div></div><span class="ppc">18%</span><span class="ctag cnew">新建</span></div>
+        <div class="prow"><span class="ptk">金矿股</span><div class="pbw"><div class="pb" style="width:14%;background:#EF9F27"></div></div><span class="ppc">14%</span><span class="ctag cadd">加仓</span></div>
+        <div class="prow"><span class="ptk">美债空头</span><div class="pbw"><div class="pb" style="width:10%;background:#E24B4A"></div></div><span class="ppc">10%</span><span class="ctag ctrm">维持</span></div>
+        <button class="askbtn" onclick="openSerenity('用 serenity-skill 分析 Druckenmiller 建仓天然气的产业链逻辑。AI 数据中心用电产业链里，天然气的瓶颈在哪里？')"><i class="ti ti-sparkles"></i> Serenity Skill 分析天然气宏观逻辑</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 我的持仓 ===== -->
+  <div id="holdings" class="panel">
+    <div class="card">
+      <div class="ctitle"><i class="ti ti-chart-pie"></i>AI 持仓建议（示例组合）</div>
+      <div class="arow"><span class="al">总体策略</span><span class="av">科技主导+防御底仓+航天配置。65% 进攻，20% 防御，10% 航天，5% 现金候 PCE 数据。</span></div>
+      <div class="arow"><span class="al">风险等级</span><span class="av" style="color:var(--amber)">中等偏高 · 利率不确定性 + IPO 窗口期</span></div>
+    </div>
+    <div class="hcard"><div class="htk">NVDA</div><div class="hinfo"><div class="hn">英伟达</div><div class="hd">建议 20% · 财报超预期，AI算力主线验证</div></div><div class="hrt"><div class="hp">$952</div><div class="hc" style="color:var(--green)">▲+6.8%</div></div><span class="rbdg" style="background:var(--gbg);color:var(--green)">加仓</span></div>
+    <div class="hcard"><div class="htk">AAPL</div><div class="hinfo"><div class="hn">苹果</div><div class="hd">建议 15% · WWDC 超预期，换机周期看多</div></div><div class="hrt"><div class="hp">$201</div><div class="hc" style="color:var(--green)">▲+1.2%</div></div><span class="rbdg" style="background:var(--abg);color:var(--amber)">持有</span></div>
+    <div class="hcard"><div class="htk">MSFT</div><div class="hinfo"><div class="hn">微软</div><div class="hd">建议 15% · Copilot 企业渗透，云增长稳健</div></div><div class="hrt"><div class="hp">$431</div><div class="hc" style="color:var(--green)">▲+0.4%</div></div><span class="rbdg" style="background:var(--abg);color:var(--amber)">持有</span></div>
+    <div class="hcard"><div class="htk">META</div><div class="hinfo"><div class="hn">Meta</div><div class="hd">建议 10% · AI广告提效，ROI 改善</div></div><div class="hrt"><div class="hp">$529</div><div class="hc" style="color:var(--green)">▲+2.1%</div></div><span class="rbdg" style="background:var(--gbg);color:var(--green)">轻加</span></div>
+    <div class="hcard"><div class="htk">RKLB</div><div class="hinfo"><div class="hn">Rocket Lab</div><div class="hd">建议 8% · SpaceX IPO 联动，Neutron 等催化</div></div><div class="hrt"><div class="hp">$28.4</div><div class="hc" style="color:var(--green)">月+83%</div></div><span class="rbdg" style="background:var(--gbg);color:var(--green)">轻仓</span></div>
+    <div class="hcard"><div class="htk">LLY</div><div class="hinfo"><div class="hn">礼来</div><div class="hd">建议 10% · 防御底仓，GLP-1 赛道龙头</div></div><div class="hrt"><div class="hp">$894</div><div class="hc" style="color:var(--red)">▼−0.8%</div></div><span class="rbdg" style="background:var(--abg);color:var(--amber)">持有</span></div>
+    <div class="hcard"><div class="htk" style="font-size:9px">IEF</div><div class="hinfo"><div class="hn">7-10年期美债 ETF</div><div class="hd">减至 5% · 利率鹰派信号，短期承压</div></div><div class="hrt"><div class="hp">$92</div><div class="hc" style="color:var(--red)">▼−0.6%</div></div><span class="rbdg" style="background:var(--rbg);color:var(--red)">减仓</span></div>
+  </div>
+
+  <!-- ===== 本周日程 ===== -->
+  <div id="schedule" class="panel">
+    <div class="card">
+      <div class="ctitle"><i class="ti ti-calendar-event"></i>本周关键事件</div>
+      <div class="srow"><span class="stime">周一 已过</span><span style="flex:1;color:var(--text2)">NVDA 财报盘后 ✓ 超预期 18%</span><span class="b bg">已完成</span></div>
+      <div class="srow"><span class="stime">周二 上午</span><span style="flex:1">消费者信心指数 · 预期 98.2</span><span class="b ba">今日</span></div>
+      <div class="srow"><span class="stime">周三 上午</span><span style="flex:1">ADP 就业报告 · 私营就业预期 +178K</span><span style="font-size:10px;color:var(--text2)">中等影响</span></div>
+      <div class="srow"><span class="stime">周四 盘后</span><span style="flex:1">Salesforce (CRM) 财报 · EPS 预期 $2.61</span><span class="b ba">高关注</span></div>
+      <div class="srow"><span class="stime">周五 08:30</span><span style="flex:1"><strong>PCE 通胀数据</strong> · 预期 +2.7% YoY · 美联储首选指标</span><span class="b br">关键</span></div>
+    </div>
+    <div class="card">
+      <div class="ctitle"><i class="ti ti-rocket"></i>近期重要日期</div>
+      <div class="srow"><span class="stime">6月8日</span><span style="flex:1"><strong>SpaceX IPO Roadshow</strong> · 23家机构承销 · 估值 $1.8万亿</span><span class="b bp">航天重磅</span></div>
+      <div class="srow"><span class="stime">6月中旬</span><span style="flex:1">ASTS BlueBird 8/9/10 搭 Falcon 9 发射 · 关键节点</span><span class="b ba">高关注</span></div>
+      <div class="srow"><span class="stime">6月底</span><span style="flex:1">SpaceX (SPCX) 预计正式上市 Nasdaq</span><span class="b bp">史上最大IPO</span></div>
+      <div class="srow"><span class="stime">2026 H2</span><span style="flex:1">LUNR IM-3 月球着陆 · RKLB Neutron 首飞</span><span style="font-size:10px;color:var(--text2)">航天催化</span></div>
+    </div>
+    <div class="card">
+      <div class="ctitle"><i class="ti ti-clock"></i>自动刷新计划</div>
+      <div class="row"><div class="dot db"></div><div style="font-size:12px">每日 <strong>PST 09:00</strong> — 全量刷新：市场数据、新闻、AI 分析、持仓建议重算</div></div>
+      <div class="row"><div class="dot dg"></div><div style="font-size:12px">财报后 <strong>30分钟内</strong> — 自动触发财报专项分析，推送超预期/不及预期判断</div></div>
+      <div class="row"><div class="dot da"></div><div style="font-size:12px">异动监控 — VIX 突变 / 个股单日超 5% 时触发即时提醒</div></div>
+    </div>
+  </div>
+
+  <!-- ===== SERENITY SKILL ===== -->
+  <div id="serenity" class="panel">
+    <div class="skill-hero">
+      <h2><i class="ti ti-sparkles"></i> Serenity.skill <span class="skill-installed">✓ 已安装</span></h2>
+      <p>供应链瓶颈猎手 · 受 Serenity / @aleabitoreddit 投研方法启发 · 从热点出发，拆产业链，找供应链瓶颈，筛候选公司，输出有逻辑有证据的研究清单。</p>
+
+      <div class="prompt-grid">
+        <div class="prompt-card" onclick="fillPrompt('用 serenity-skill 深度调研现在 AI 算力产业链（美股）。请联网查财报、客户认证、产能和风险，先排产业链层级，再找 5 个最值得优先研究的标的，说明卡住的环节、证据和主要风险。')">
+          <div class="pc-label">主题扫描</div>
+          <div class="pc-text">AI 算力产业链深度扫描</div>
+        </div>
+        <div class="prompt-card" onclick="fillPrompt('用 serenity-skill 研究 SpaceX IPO 和商业航天产业链。先拆层级，再判断哪些环节更接近真实供需瓶颈，最后给出 SPCX、RKLB、ASTS、LUNR 的优先研究排序。')">
+          <div class="pc-label">主题扫描</div>
+          <div class="pc-text">商业航天产业链扫描</div>
+        </div>
+        <div class="prompt-card" onclick="fillPrompt('用 serenity-skill 挑战 NVDA。它真的卡住了 AI 产业链的关键环节吗？证据够不够？市场可能高估了什么？什么情况下这个判断应该降级？')">
+          <div class="pc-label">单股挑战</div>
+          <div class="pc-text">挑战 NVDA 的供应链地位</div>
+        </div>
+        <div class="prompt-card" onclick="fillPrompt('用 serenity-skill 比较 ORCL、PLTR、SNOW 三家公司。按产业链位置、证据强度、稀缺性、估值压力和主要风险排序，给出优先研究顺序。')">
+          <div class="pc-label">候选对比</div>
+          <div class="pc-text">对比 ORCL / PLTR / SNOW</div>
+        </div>
+      </div>
+
+      <div class="skill-input-wrap">
+        <input class="skill-input" id="skillInput" placeholder="输入你的研究问题，或直接选上方模板..." onkeydown="if(event.key==='Enter')runSkill()">
+        <button class="skill-send" onclick="runSkill()">发送 ↗</button>
+      </div>
+
+      <div class="skill-output" id="skillOutput"></div>
+
+      <div class="skill-examples">
+        <div class="skill-ex" onclick="fillPrompt('用 serenity-skill 研究天然气+AI数据中心用电产业链，找供应链瓶颈，分析 AR、EQT、LNG 谁更接近真实瓶颈。')">
+          <span class="skill-ex-icon">⚡</span><span>天然气 × AI 用电产业链 — AR、EQT、LNG 谁更接近瓶颈？</span>
+        </div>
+        <div class="skill-ex" onclick="fillPrompt('用 serenity-skill 陪我讨论 GLP-1 减肥药产业链。不要直接写报告，每轮先给判断，再问我一个关键问题，带我从故事拆到产业链卡点。')">
+          <span class="skill-ex-icon">💊</span><span>GLP-1 产业链研究伙伴模式 — 带我一步步拆</span>
+        </div>
+        <div class="skill-ex" onclick="fillPrompt('用 serenity-skill 深度调研核能产业链（美股）。AI 用电驱动下，铀矿、核燃料、反应堆、电网哪个环节最稀缺？给出 CCJ、VST、CEG、NNE 优先研究排序。')">
+          <span class="skill-ex-icon">☢️</span><span>核能产业链深扫 — AI 用电下哪个环节最稀缺？</span>
+        </div>
+        <div class="skill-ex" onclick="fillPrompt('用 serenity-skill 帮我研究机器人产业链（美股+A股）。先拆产业链，再判断整机、减速器、传感器、执行器哪个环节更接近真实瓶颈。')">
+          <span class="skill-ex-icon">🤖</span><span>机器人产业链扫描 — 哪个零件是真正瓶颈？</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ctitle"><i class="ti ti-info-circle"></i>Serenity.skill 安装状态</div>
+      <div class="arow"><span class="al">安装路径</span><span class="av" style="font-family:monospace;font-size:11px">~/.claude/skills/serenity-skill/</span></div>
+      <div class="arow"><span class="al">版本</span><span class="av">v1.0.0 · MIT License</span></div>
+      <div class="arow"><span class="al">来源</span><span class="av">github.com/muxuuu/serenity-skill</span></div>
+      <div class="arow"><span class="al">功能</span><span class="av">主题扫描 / 单股挑战 / 候选对比 / 研究伙伴 / 瓶颈打分</span></div>
+      <div class="arow"><span class="al">适用市场</span><span class="av">美股 · 港股 · A股 · 台韩日</span></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function sw(id,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+function changeKey(){
+  localStorage.removeItem('anthropic_key');
+  window._apiKey='';
+  document.getElementById('gate').style.display='flex';
+  document.getElementById('apiKeyInput').value='';
+}
+function doRefresh(){
+  const btn=document.getElementById('rbtn');
+  btn.classList.add('spin');btn.disabled=true;
+  setTimeout(()=>{btn.classList.remove('spin');btn.disabled=false},1800);
+}
+function openSerenity(prompt){
+  sw('serenity',document.querySelector('.tab:last-child'));
+  document.getElementById('skillInput').value=prompt;
+  document.getElementById('skillInput').focus();
+}
+function fillPrompt(text){
+  document.getElementById('skillInput').value=text;
+  document.getElementById('skillInput').focus();
+}
+async function runSkill(){
+  const input=document.getElementById('skillInput');
+  const out=document.getElementById('skillOutput');
+  const q=input.value.trim();
+  if(!q)return;
+  out.classList.add('active');
+  out.innerHTML='<span class="typing">分析中，调用 Serenity Skill...</span>';
+
+  try{
+    const systemPrompt=`你是一个供应链瓶颈猎手投研助手，采用 Serenity.skill 方法论：从市场叙事出发，拆解真实供需系统，找到最难扩产/最难替代的关键环节，回到股票方向，用公开证据排序研究优先级。
+
+核心输出结构：
+1. 产业链层级（下游需求→系统集成→芯片/器件→设备→材料→封测→基础设施）
+2. 瓶颈判断（哪个环节供应商少、验证周期长、扩产困难）
+3. 候选公司排序（谁更靠近真实瓶颈，谁只是蹭热点）
+4. 证据质量（公告/财报/客户认证/订单/产能数据）
+5. 主要风险和下一步核验清单
+
+用中文回答，语气直接专业，像 Serenity 那样有观点有逻辑。不做投资建议，只做研究排序。`;
+
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':window._apiKey||'','anthropic-version':'2023-06-01'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        system:systemPrompt,
+        messages:[{role:'user',content:q}]
+      })
+    });
+    const data=await resp.json();
+    const text=data.content?.map(c=>c.text||'').join('')||'未获得响应';
+    out.innerHTML=text.replace(/\n/g,'<br>');
+  }catch(e){
+    out.innerHTML='<span style="color:#E24B4A">⚠ 需要连接 Claude API。请在生产环境中配置 API Key。</span><br><br>当前输入已记录，可复制到 Claude 对话中使用：<br><br><em>'+q+'</em>';
+  }
+}
+</script>
+
+<script>
+(function(){
+  const saved = localStorage.getItem('anthropic_key');
+  if(saved && saved.startsWith('sk-ant-')){
+    window._apiKey = saved;
+    document.getElementById('gate').style.display='none';
+  }
+})();
+function saveKey(){
+  const v = document.getElementById('apiKeyInput').value.trim();
+  if(!v.startsWith('sk-ant-') && !v.startsWith('sk-')){
+    document.getElementById('keyErr').style.display='block'; return;
+  }
+  document.getElementById('keyErr').style.display='none';
+  localStorage.setItem('anthropic_key', v);
+  window._apiKey = v;
+  document.getElementById('gate').style.display='none';
+}
+</script>
+
+</body>
+</html>
