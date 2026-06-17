@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>股票 AI Agent</title>
+<title>股神基米</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
   :root {
@@ -73,7 +73,9 @@
   .av{flex:1;line-height:1.55;text-align:right}
 
   /* news */
-  .ni{border:.5px solid var(--border);border-radius:var(--r2);padding:11px 13px;margin-bottom:8px}
+  .ni{border:.5px solid var(--border);border-radius:var(--r2);padding:11px 13px;margin-bottom:8px;transition:border-color .15s,box-shadow .15s}
+  .ni[onclick]{cursor:pointer}
+  .ni[onclick]:hover{border-color:var(--border2);box-shadow:0 2px 8px rgba(0,0,0,.06)}
   .nm{display:flex;align-items:center;gap:5px;margin-bottom:5px;flex-wrap:wrap}
   .ns{font-size:10px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.3px}
   .nt{font-size:13px;font-weight:500;margin-bottom:5px;line-height:1.35}
@@ -219,11 +221,11 @@
 
   <div class="hdr">
     <div>
-      <h1>股票 AI Agent <span class="live">实时</span></h1>
+      <h1>股神基米 <span class="live">实时</span></h1>
       <p>2026年6月16日 · PST 09:00 自动刷新 · Claude AI 驱动</p>
     </div>
     <div class="hdr-btns">
-      <button class="rbtn" id="rbtn" onclick="doRefresh()"><i class="ti ti-refresh" id="ri"></i> 刷新</button>
+      <button class="rbtn" id="rbtn" onclick="doRefresh()" title="调用 Claude API 刷新今日简报"><i class="ti ti-refresh" id="ri"></i> AI刷新简报</button>
     </div>
   </div>
 
@@ -253,11 +255,21 @@
   <div id="briefing" class="panel active">
     <div class="card">
       <div class="ctitle"><i class="ti ti-flame"></i>今日最重要信号</div>
-      <div class="row"><div class="dot dr"></div><div>英伟达财报超预期 18%，EPS $6.12 vs 预期 $5.18，数据中心 +122%。明日预计高开 7-9%。</div></div>
-      <div class="row"><div class="dot dp"></div><div><strong>SpaceX 获 Space Force $64.5亿合同</strong>（黄金穹顶卫星+低轨通信网），IPO Roadshow 6月8日启动，估值 $1.8万亿，史上最大 IPO。</div></div>
-      <div class="row"><div class="dot da"></div><div>Fed Waller 偏鹰：年内降息或减至 1 次，10年期美债升至 4.62%，成长股估值承压。</div></div>
-      <div class="row"><div class="dot dg"></div><div>苹果 WWDC：Apple Intelligence 整合 iOS 20，iPhone 出货上调至 2.45亿，目标价 $230。</div></div>
-      <div class="row"><div class="dot db"></div><div>本周五 PCE 数据（预期 +2.7% YoY）是最关键宏观事件，符合预期将利好风险资产。</div></div>
+      <a class="news-link" href="https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027" target="_blank" rel="noopener">
+        <div class="row row-link"><div class="dot dr"></div><div>英伟达财报超预期 18%，EPS $1.87 vs 预期 $1.77，数据中心 +92% YoY，营收 $81.6B。</div></div>
+      </a>
+      <a class="news-link" href="https://techcrunch.com/2026/05/29/spacex-awarded-6-45b-in-space-force-contracts-ahead-of-ipo/" target="_blank" rel="noopener">
+        <div class="row row-link"><div class="dot dp"></div><div><strong>SpaceX 获 Space Force $64.5亿合同</strong>（黄金穹顶卫星+低轨通信网），IPO Roadshow 6月8日启动，估值 $1.8万亿，史上最大 IPO。</div></div>
+      </a>
+      <a class="news-link" href="https://www.unboxfuture.com/2026/06/fed-june-2026-hawkish-pause-rates-held.html" target="_blank" rel="noopener">
+        <div class="row row-link"><div class="dot da"></div><div>Fed 6月会议：利率维持 3.5-3.75%，年内仅剩 1 次降息预期，10年期美债升至 4.62%，成长股估值承压。</div></div>
+      </a>
+      <a class="news-link" href="https://www.cnbc.com/2026/06/08/apple-wwdc-2026-live-updates.html" target="_blank" rel="noopener">
+        <div class="row row-link"><div class="dot dg"></div><div>苹果 WWDC：Apple Intelligence 全面整合 iOS 20，M5 芯片性能 +40%，iPhone 出货上调至 2.45亿，目标价 $230。</div></div>
+      </a>
+      <a class="news-link" href="https://www.bea.gov/data/personal-consumption-expenditures-price-index" target="_blank" rel="noopener">
+        <div class="row row-link"><div class="dot db"></div><div>本周五 PCE 通胀数据（预期 +2.7% YoY）是最关键宏观事件，符合预期将利好风险资产，美联储首选通胀指标。</div></div>
+      </a>
     </div>
     <div class="card">
       <div class="ctitle"><i class="ti ti-brain"></i>AI 操盘手今日观点</div>
@@ -270,27 +282,27 @@
 
   <!-- ===== 新闻解读 ===== -->
   <div id="news" class="panel">
-    <div class="ni">
-      <div class="nm"><span class="ns">Bloomberg</span><span style="font-size:10px;color:var(--text2)">2h前</span><span class="b br">高影响</span></div>
-      <div class="nt">英伟达 Q1 FY2027：收入 $440亿，超华尔街预期 $393亿</div>
+    <div class="ni" style="cursor:pointer" onclick="window.open('https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027','_blank')">
+      <div class="nm"><span class="ns">NVIDIA 官方</span><span style="font-size:10px;color:var(--text2)">2026-05-20</span><span class="b br">高影响</span></div>
+      <div class="nt">英伟达 Q1 FY2027：营收 $81.6B，超华尔街预期 $78.5B，EPS $1.87 超预期</div>
       <div class="na">Blackwell GPU 需求爆发，数据中心 $391亿（+122% YoY），毛利率 78.4% 创新高，定价权极强。微软/Google/Meta 资本开支持续扩张是核心驱动。AMD、ASML、台积电 ADR 正联动。唯一长期风险：对华出口管制，管理层称合规版本在研。</div>
       <div class="ntags"><span class="ntag">NVDA +8%预期</span><span class="ntag">SMH ETF</span><span class="ntag">AMD联动</span><span class="ntag">ASML正向</span></div>
     </div>
-    <div class="ni">
-      <div class="nm"><span class="ns">TechCrunch</span><span style="font-size:10px;color:var(--text2)">5h前</span><span class="b br">高影响</span></div>
-      <div class="nt">SpaceX 获 Space Force $64.5亿合同：黄金穹顶 + 低轨通信网</div>
+    <div class="ni" style="cursor:pointer" onclick="window.open('https://techcrunch.com/2026/05/29/spacex-awarded-6-45b-in-space-force-contracts-ahead-of-ipo/','_blank')">
+      <div class="nm"><span class="ns">TechCrunch</span><span style="font-size:10px;color:var(--text2)">2026-05-29</span><span class="b br">高影响</span></div>
+      <div class="nt">SpaceX 获 Space Force $64.5亿合同：黄金穹顶卫星 + 低轨通信网，IPO 前锁定政府长期收入</div>
       <div class="na">$41.6亿造导弹防御卫星（黄金穹顶），$22.9亿建低轨通信网，与特朗普核心政策深度绑定。IPO 前夕锁定政府长期合同，RKLB、LUNR 正联动。ASTS 因估值下调今日独立承压。</div>
       <div class="ntags"><span class="ntag">SPCX IPO背书</span><span class="ntag">RKLB联动</span><span class="ntag">黄金穹顶</span></div>
     </div>
-    <div class="ni">
-      <div class="nm"><span class="ns">Reuters</span><span style="font-size:10px;color:var(--text2)">5h前</span><span class="b ba">中影响</span></div>
-      <div class="nt">Fed Waller 偏鹰：年内降息或仅 1 次，超市场预期</div>
+    <div class="ni" style="cursor:pointer" onclick="window.open('https://www.unboxfuture.com/2026/06/fed-june-2026-hawkish-pause-rates-held.html','_blank')">
+      <div class="nm"><span class="ns">Fed / 分析</span><span style="font-size:10px;color:var(--text2)">2026-06-17</span><span class="b ba">中影响</span></div>
+      <div class="nt">Fed 6月会议：利率维持 3.5%-3.75%，年内仅余 1 次降息预期，偏鹰暂停</div>
       <div class="na">CME FedWatch 9月降息概率从 68% 降至 51%。影响链：美债收益率上行 → 高 P/E 成长股估值压缩。周五 PCE 若良好可部分抵消。盈利强劲者（NVDA）可对冲，纯炒作高 P/E 标的警惕。</div>
       <div class="ntags"><span class="ntag">REITs承压</span><span class="ntag">美元走强</span><span class="ntag">成长股估值压</span></div>
     </div>
-    <div class="ni">
-      <div class="nm"><span class="ns">CNBC</span><span style="font-size:10px;color:var(--text2)">8h前</span><span class="b bg">正面</span></div>
-      <div class="nt">苹果 WWDC 2026：Apple Intelligence 全面整合，M5 芯片性能 +40%</div>
+    <div class="ni" style="cursor:pointer" onclick="window.open('https://www.cnbc.com/2026/06/08/apple-wwdc-2026-live-updates.html','_blank')">
+      <div class="nm"><span class="ns">CNBC</span><span style="font-size:10px;color:var(--text2)">2026-06-09</span><span class="b bg">正面</span></div>
+      <div class="nt">苹果 WWDC 2026：Apple Intelligence 全面整合 iOS 20，M5 芯片性能 +40%</div>
       <div class="na">端侧 AI + 隐私差异化超预期。iPhone 出货上调至 2.45亿台（前 2.32亿）。服务收入高毛利是核心估值支撑。台积电 ADR 正向联动。短期震荡消化，12个月维度看多。</div>
       <div class="ntags"><span class="ntag">AAPL目标价$230</span><span class="ntag">台积电正向</span><span class="ntag">换机周期</span></div>
     </div>
@@ -466,20 +478,24 @@
     </div>
   </div>
 
-  <!-- ===== 我的持仓 ===== -->
+    <!-- ===== 我的持仓 ===== -->
   <div id="holdings" class="panel">
     <div class="card">
-      <div class="ctitle"><i class="ti ti-chart-pie"></i>AI 持仓建议（示例组合）</div>
-      <div class="arow"><span class="al">总体策略</span><span class="av">科技主导+防御底仓+航天配置。65% 进攻，20% 防御，10% 航天，5% 现金候 PCE 数据。</span></div>
-      <div class="arow"><span class="al">风险等级</span><span class="av" style="color:var(--amber)">中等偏高 · 利率不确定性 + IPO 窗口期</span></div>
+      <div class="ctitle"><i class="ti ti-chart-pie"></i>我的持仓 · 实时数据 · 更新于 2026-06-16</div>
+      <div class="arow"><span class="al">组合特征</span><span class="av">AI算力 + 商业航天 + 稀土/内存 多主线并行。高风险高弹性组合，ASTS+RKLB 航天敞口显著。</span></div>
+      <div class="arow"><span class="al">风险提示</span><span class="av" style="color:var(--red)">DXYZ 较高位回调 −60%+ · ASTS 从高位 $134 回落至 $87 · INTC 高波动 · 注意仓位管理</span></div>
     </div>
-    <div class="hcard"><div class="htk">NVDA</div><div class="hinfo"><div class="hn">英伟达</div><div class="hd">建议 20% · 财报超预期，AI算力主线验证</div></div><div class="hrt"><div class="hp">$952</div><div class="hc" style="color:var(--green)">▲+6.8%</div></div><span class="rbdg" style="background:var(--gbg);color:var(--green)">加仓</span></div>
-    <div class="hcard"><div class="htk">AAPL</div><div class="hinfo"><div class="hn">苹果</div><div class="hd">建议 15% · WWDC 超预期，换机周期看多</div></div><div class="hrt"><div class="hp">$201</div><div class="hc" style="color:var(--green)">▲+1.2%</div></div><span class="rbdg" style="background:var(--abg);color:var(--amber)">持有</span></div>
-    <div class="hcard"><div class="htk">MSFT</div><div class="hinfo"><div class="hn">微软</div><div class="hd">建议 15% · Copilot 企业渗透，云增长稳健</div></div><div class="hrt"><div class="hp">$431</div><div class="hc" style="color:var(--green)">▲+0.4%</div></div><span class="rbdg" style="background:var(--abg);color:var(--amber)">持有</span></div>
-    <div class="hcard"><div class="htk">META</div><div class="hinfo"><div class="hn">Meta</div><div class="hd">建议 10% · AI广告提效，ROI 改善</div></div><div class="hrt"><div class="hp">$529</div><div class="hc" style="color:var(--green)">▲+2.1%</div></div><span class="rbdg" style="background:var(--gbg);color:var(--green)">轻加</span></div>
-    <div class="hcard"><div class="htk">RKLB</div><div class="hinfo"><div class="hn">Rocket Lab</div><div class="hd">建议 8% · SpaceX IPO 联动，Neutron 等催化</div></div><div class="hrt"><div class="hp">$28.4</div><div class="hc" style="color:var(--green)">月+83%</div></div><span class="rbdg" style="background:var(--gbg);color:var(--green)">轻仓</span></div>
-    <div class="hcard"><div class="htk">LLY</div><div class="hinfo"><div class="hn">礼来</div><div class="hd">建议 10% · 防御底仓，GLP-1 赛道龙头</div></div><div class="hrt"><div class="hp">$894</div><div class="hc" style="color:var(--red)">▼−0.8%</div></div><span class="rbdg" style="background:var(--abg);color:var(--amber)">持有</span></div>
-    <div class="hcard"><div class="htk" style="font-size:9px">IEF</div><div class="hinfo"><div class="hn">7-10年期美债 ETF</div><div class="hd">减至 5% · 利率鹰派信号，短期承压</div></div><div class="hrt"><div class="hp">$92</div><div class="hc" style="color:var(--red)">▼−0.6%</div></div><span class="rbdg" style="background:var(--rbg);color:var(--red)">减仓</span></div>
+    <div class="hcard"><div class="htk">NVDA</div><div class="hinfo"><div class="hn">英伟达 · 10股</div><div class="hd">AI算力核心 · Q1营收$81.6B +85% YoY · $25B债券发行</div></div><div class="hrt"><div class="hp">$208.44</div><div class="hc" style="color:var(--red)">▼ 较高位-12%</div></div><span class="rbdg" style="background:var(--gbg);color:var(--green)">持有</span></div>
+    <div class="hcard"><div class="htk">META</div><div class="hinfo"><div class="hn">Meta · 32股</div><div class="hd">AI广告+Threads 5亿用户 · 下季财报 7月29日</div></div><div class="hrt"><div class="hp">$598.11</div><div class="hc" style="color:var(--green)">▲ 今日+1.2%</div></div><span class="rbdg" style="background:var(--abg);color:var(--amber)">持有</span></div>
+    <div class="hcard"><div class="htk">AMD</div><div class="hinfo"><div class="hn">AMD · 2股</div><div class="hd">Meta 6GW Instinct GPU大单 · 年内+107% · 52周新高</div></div><div class="hrt"><div class="hp">$548.80</div><div class="hc" style="color:var(--green)">▲ +3.5%今日</div></div><span class="rbdg" style="background:var(--gbg);color:var(--green)">持有</span></div>
+    <div class="hcard"><div class="htk">VRT</div><div class="hinfo"><div class="hn">Vertiv · 1股</div><div class="hd">AI数据中心基础设施 · YTD+84% · Bernstein新给Outperform</div></div><div class="hrt"><div class="hp">$311.93</div><div class="hc" style="color:var(--green)">▲ 今日+3.0%</div></div><span class="rbdg" style="background:var(--abg);color:var(--amber)">持有</span></div>
+    <div class="hcard"><div class="htk">RKLB</div><div class="hinfo"><div class="hn">Rocket Lab · 18股</div><div class="hd">加入Nasdaq-100 · SpaceX IPO后回调 · Neutron火箭首飞等催化</div></div><div class="hrt"><div class="hp">$108.70</div><div class="hc" style="color:var(--green)">▲ +6.7%今日</div></div><span class="rbdg" style="background:var(--gbg);color:var(--green)">持有</span></div>
+    <div class="hcard"><div class="htk">ASTS</div><div class="hinfo"><div class="hn">AST SpaceMobile · 36股</div><div class="hd">SpaceX IPO后大幅回调 · 距高位$134已跌35% · BlueBird发射待定</div></div><div class="hrt"><div class="hp">$86.85</div><div class="hc" style="color:var(--red)">▼ −35%离高位</div></div><span class="rbdg" style="background:var(--abg);color:var(--amber)">观察</span></div>
+    <div class="hcard"><div class="htk">INTC</div><div class="hinfo"><div class="hn">Intel · 10股</div><div class="hd">年内+529% 逆转 · AI转型+Google晶圆代工大单 · 分析师双重升级</div></div><div class="hrt"><div class="hp">$118.43</div><div class="hc" style="color:var(--green)">▲ 年+529%</div></div><span class="rbdg" style="background:var(--gbg);color:var(--green)">持有</span></div>
+    <div class="hcard"><div class="htk">DRAM</div><div class="hinfo"><div class="hn">Roundhill Memory ETF · 10股</div><div class="hd">首只内存芯片ETF · 4月上市已涨+90% · 持Samsung/SK海力士/Micron</div></div><div class="hrt"><div class="hp">$70.32</div><div class="hc" style="color:var(--green)">▲ 月+39%</div></div><span class="rbdg" style="background:var(--gbg);color:var(--green)">持有</span></div>
+    <div class="hcard"><div class="htk">DXYZ</div><div class="hinfo"><div class="hn">Destiny Tech100 · 29股</div><div class="hd">持有SpaceX/OpenAI等私募独角兽 · SpaceX IPO后大幅回调</div></div><div class="hrt"><div class="hp">$28.97</div><div class="hc" style="color:var(--red)">▼ 较高$72跌60%</div></div><span class="rbdg" style="background:var(--rbg);color:var(--red)">关注</span></div>
+    <div class="hcard"><div class="htk" style="font-size:9px">NASA ETF</div><div class="hinfo"><div class="hn">Tema Space ETF · 30股</div><div class="hd">商业航天板块整体敞口 · 新上市 · 月内+24%</div></div><div class="hrt"><div class="hp">$32.15</div><div class="hc" style="color:var(--green)">▲ 月+24%</div></div><span class="rbdg" style="background:var(--abg);color:var(--amber)">持有</span></div>
+    <div class="hcard"><div class="htk">REA</div><div class="hinfo"><div class="hn">Rare Earths Americas · 3股</div><div class="hd">稀土探矿 · 美国+巴西项目 · 分析师目标价$29.25 · 强力推荐买入</div></div><div class="hrt"><div class="hp">$17.83</div><div class="hc" style="color:var(--amber)">◆ 目标+64%</div></div><span class="rbdg" style="background:var(--gbg);color:var(--green)">持有</span></div>
   </div>
 
   <!-- ===== 本周日程 ===== -->
@@ -580,11 +596,7 @@ function changeKey(){
   document.getElementById('gate').style.display='flex';
   document.getElementById('apiKeyInput').value='';
 }
-function doRefresh(){
-  const btn=document.getElementById('rbtn');
-  btn.classList.add('spin');btn.disabled=true;
-  setTimeout(()=>{btn.classList.remove('spin');btn.disabled=false},1800);
-}
+
 function openSerenity(prompt){
   sw('serenity',document.querySelector('.tab:last-child'));
   document.getElementById('skillInput').value=prompt;
@@ -634,6 +646,74 @@ async function runSkill(){
 </script>
 
 <script>
+
+function sw(id,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+async function doRefresh(){
+  const btn=document.getElementById('rbtn');
+  if(!window._apiKey){
+    alert('请先输入 API Key 才能刷新数据');
+    return;
+  }
+  btn.classList.add('spin'); btn.disabled=true;
+
+  // Show loading indicator in briefing
+  const panel = document.getElementById('briefing');
+  let ld = document.createElement('div');
+  ld.id='rl'; ld.style.cssText='text-align:center;padding:1.5rem;font-size:12px;color:var(--text2)';
+  ld.innerHTML='<i class="ti ti-loader-2" style="animation:sp 1s linear infinite;display:inline-block;font-size:18px"></i><br>AI 正在获取最新市场数据...';
+  panel.prepend(ld);
+
+  // Switch to briefing tab
+  sw('briefing', document.querySelector('.tab'));
+
+  const today = new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+  try {
+    const endpoint = window.location.hostname === 'localhost' ? '/api/chat' : 'https://api.anthropic.com/v1/messages';
+    const headers = {'Content-Type':'application/json','anthropic-version':'2023-06-01'};
+    if(window._apiKey) headers['x-api-key'] = window._apiKey;
+    if(window._accessCode) headers['x-access-code'] = window._accessCode;
+
+    const resp = await fetch(endpoint, {
+      method:'POST', headers,
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6', max_tokens:600,
+        system:'你是专业股票分析师。用中文给出今日最重要的5条市场信号，每条50字内。返回纯JSON数组，格式：[{"color":"dr","text":"内容"}]。color选项：dr=红(利空/风险), dp=紫(重大事件), da=橙(警示), dg=绿(利好), db=蓝(宏观)。只返回JSON，不要任何其他文字。',
+        messages:[{role:'user',content:'今天是'+today+'。请搜索并给出今日最新最重要的5条美股市场信号，涵盖：重要财报、Fed动态、重大事件、板块机会、风险提示。'}]
+      })
+    });
+    const data = await resp.json();
+    const text = (data.content||[]).map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
+    const signals = JSON.parse(text);
+
+    // Replace signal rows in first card
+    const card = panel.querySelector('.card');
+    card.querySelectorAll('a.news-link,.row').forEach(r=>r.remove());
+    signals.forEach(s=>{
+      const d=document.createElement('div');
+      d.className='row';
+      d.innerHTML=`<div class="dot ${s.color||'db'}"></div><div>${s.text}</div>`;
+      card.appendChild(d);
+    });
+    document.querySelector('.hdr p').textContent=new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'})+' · 刚刚更新 · Claude AI 驱动';
+  } catch(e) {
+    console.error(e);
+    // Friendly error — GitHub Pages can't proxy API
+    const card = panel.querySelector('.card');
+    const errDiv = document.createElement('div');
+    errDiv.className='row';
+    errDiv.innerHTML='<div class="dot da"></div><div>⚠ 刷新失败：GitHub Pages 静态页面无法代理 API 请求。请<a href="https://vercel.com" target="_blank" style="color:var(--blue)">部署带后端的版本</a>，或直接在 Serenity Skill 标签页发起 AI 分析。</div>';
+    card.appendChild(errDiv);
+  } finally {
+    btn.classList.remove('spin'); btn.disabled=false;
+    const l=document.getElementById('rl'); if(l) l.remove();
+  }
+}
+function doRef(btn){ doRefresh(); }
 (function(){
   const saved = localStorage.getItem('anthropic_key');
   if(saved && saved.startsWith('sk-ant-')){
