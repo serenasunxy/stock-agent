@@ -194,6 +194,12 @@
     .ipon{grid-template-columns:repeat(3,1fr)}
     .prompt-grid{grid-template-columns:1fr}
   }
+  a.news-link,
+  a.news-link:link,
+  a.news-link:visited,
+  a.news-link:hover,
+  a.news-link:active { color: var(--text) !important; text-decoration: none !important; }
+  a.news-link .row div { color: var(--text) !important; }
 </style>
 </head>
 <body>
@@ -706,7 +712,7 @@ async function doRefresh(){
     const card = panel.querySelector('.card');
     const errDiv = document.createElement('div');
     errDiv.className='row';
-    errDiv.innerHTML='<div class="dot da"></div><div>⚠ 刷新失败：GitHub Pages 静态页面无法代理 API 请求。请<a href="https://vercel.com" target="_blank" style="color:var(--blue)">部署带后端的版本</a>，或直接在 Serenity Skill 标签页发起 AI 分析。</div>';
+    errDiv.innerHTML='<div class="dot db"></div><div>刷新需要配置后端服务。可在 ⚡ Serenity Skill 标签页手动发起 AI 分析。</div>';
     card.appendChild(errDiv);
   } finally {
     btn.classList.remove('spin'); btn.disabled=false;
